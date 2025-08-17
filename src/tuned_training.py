@@ -17,6 +17,7 @@ import joblib
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
 
 def main(args):
@@ -30,7 +31,7 @@ def main(args):
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # --- Logistic Regression ---
+    # --- Logistic Regression (baseline) ---
     log_reg = LogisticRegression(max_iter=1000)
     log_reg.fit(X_train, y_train)
     y_pred_lr = log_reg.predict(X_test)
@@ -60,45 +61,25 @@ def main(args):
         auc = roc_auc_score(y_test, y_prob_rf)
         print(f"ROC-AUC: {auc:.4f}")
 
-    # Save best model
+    # --- Save model, scaler, and feature names ---
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
+
+    # Save model
     joblib.dump(best_rf, args.output)
-    print(f"\n Best model saved to {args.output}")
 
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
-from sklearn.metrics import confusion_matrix, roc_curve, auc
+    # Save feature names (column order matters!)
+    feature_names_path = Path(args.output).parent / "feature_names.joblib"
+    joblib.dump(X.columns.tolist(), feature_names_path)
 
-# Simulated ground truth (y_true) and predictions (y_pred)
-y_true = np.array([0]*90 + [1]*60)   # 90 not at risk, 60 at risk
-y_pred = np.array([0]*82 + [1]*8 + [0]*15 + [1]*45)  # simulated model predictions
+    # Save scaler
+    scaler = StandardScaler()
+    scaler.fit(X)  # fit on full data
+    scaler_path = Path(args.output).parent / "scaler.joblib"
+    joblib.dump(scaler, scaler_path)
 
-# --- Confusion Matrix ---
-cm = confusion_matrix(y_true, y_pred)
-plt.figure(figsize=(6,5))
-sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
-            xticklabels=["Not at Risk","At Risk"],
-            yticklabels=["Not at Risk","At Risk"])
-plt.ylabel("Actual")
-plt.xlabel("Predicted")
-plt.title("Confusion Matrix Example")
-plt.show()
-
-# --- ROC Curve ---
-# Simulated prediction probabilities (y_scores)
-y_scores = np.concatenate([np.random.rand(90)*0.4, np.random.rand(60)*0.9+0.1])  # lower for safe, higher for risk
-fpr, tpr, thresholds = roc_curve(y_true, y_scores)
-roc_auc = auc(fpr, tpr)
-
-plt.figure(figsize=(6,5))
-plt.plot(fpr, tpr, label=f"ROC Curve (AUC = {roc_auc:.2f})", lw=2)
-plt.plot([0,1], [0,1], linestyle="--", color="grey")
-plt.xlabel("False Positive Rate")
-plt.ylabel("True Positive Rate (Recall)")
-plt.title("ROC Curve Example")
-plt.legend()
-plt.show()
+    print(f"\nModel saved to {args.output}")
+    print(f"Feature names saved to {feature_names_path}")
+    print(f"Scaler saved to {scaler_path}")
 
 
 if __name__ == "__main__":

@@ -3,18 +3,19 @@ import pandas as pd
 import joblib
 from pathlib import Path
 
-# --- Load model and scaler ---
+# --- Load model, scaler, and feature list ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 MODEL_PATH = BASE_DIR / "model/best_model.joblib"
 SCALER_PATH = BASE_DIR / "model/scaler.joblib"
+FEATURES_PATH = BASE_DIR / "model/feature_names.joblib"
 
-
-model, scaler = None, None
-if MODEL_PATH.exists() and SCALER_PATH.exists():
+model, scaler, feature_names = None, None, None
+if MODEL_PATH.exists() and SCALER_PATH.exists() and FEATURES_PATH.exists():
     model = joblib.load(MODEL_PATH)
     scaler = joblib.load(SCALER_PATH)
+    feature_names = joblib.load(FEATURES_PATH)
 else:
-    st.error("Model files not found. Please ensure best_model.joblib and scaler.joblib are in /model folder.")
+    st.error("Model/scaler/feature_names not found. Please ensure they are in /model folder.")
 
 st.set_page_config(page_title="Student Dropout Risk Predictor", page_icon="🎓")
 
@@ -34,38 +35,44 @@ with st.form("student_form"):
     submit = st.form_submit_button("Predict")
 
 if submit:
-  if model is None or scaler is None:
-    st.warning("Model is not available, cannot make predictions.")
-  else:
-    # Construct input dataframe
-    input_dict = {
-        "age": [age],
-        "sex": [sex],
-        "studytime": [studytime],
-        "failures": [failures],
-        "absences": [absences],
-        "G1": [G1],
-        "G2": [G2],
-        "G3": [G3],
-    }
-    input_df = pd.DataFrame(input_dict)
+    if model is None or scaler is None or feature_names is None:
+        st.warning("Model is not available, cannot make predictions.")
+    else:
+        # Construct input dataframe
+        input_dict = {
+            "age": [age],
+            "sex": [sex],
+            "studytime": [studytime],
+            "failures": [failures],
+            "absences": [absences],
+            "G1": [G1],
+            "G2": [G2],
+            "G3": [G3],
+        }
+        input_df = pd.DataFrame(input_dict)
 
-    # Feature engineering
-    input_df["avg_grade"] = input_df[["G1","G2","G3"]].mean(axis=1)
-    input_df["grade_trend"] = input_df["G3"] - input_df["G1"]
-    input_df["passed_final"] = (input_df["G3"] >= 10).astype(int)
+        # Feature engineering
+        input_df["avg_grade"] = input_df[["G1", "G2", "G3"]].mean(axis=1)
+        input_df["grade_trend"] = input_df["G3"] - input_df["G1"]
+        input_df["passed_final"] = (input_df["G3"] >= 10).astype(int)
 
-    # Encoding: match training columns
-    # NOTE: In hackathon you may want to store the full column set
-    # For now, we keep it simple (sex → binary)
-    input_df = pd.get_dummies(input_df, columns=["sex"], drop_first=True)
+        # One-hot encoding
+        input_df = pd.get_dummies(input_df, columns=["sex"], drop_first=True)
 
-    # Scale numeric values
-    input_scaled = scaler.transform(input_df)
+        # Ensure all expected features are present
+        for col in feature_names:
+            if col not in input_df:
+                input_df[col] = 0
 
-    # Prediction
-    prob = model.predict_proba(input_scaled)[:,1][0]
-    prediction = "🚨 At Risk" if prob >= 0.5 else "✅ Not at Risk"
+        # Reorder columns to match training
+        input_df = input_df[feature_names]
 
-    st.subheader(f"Prediction: {prediction}")
-    st.write(f"Risk Probability: **{prob:.2f}**")
+        # Scale numeric values
+        input_scaled = scaler.transform(input_df)
+
+        # Prediction
+        prob = model.predict_proba(input_scaled)[:, 1][0]
+        prediction = "At Risk" if prob >= 0.5 else "Not at Risk"
+
+        st.subheader(f"Prediction: {prediction}")
+        st.write(f"Risk Probability: **{prob:.2f}**")
