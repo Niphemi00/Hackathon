@@ -9,8 +9,12 @@ MODEL_PATH = BASE_DIR / "model/best_model.joblib"
 SCALER_PATH = BASE_DIR / "model/scaler.joblib"
 
 
-model = joblib.load(MODEL_PATH)
-scaler = joblib.load(SCALER_PATH)
+model, scaler = None, None
+if MODEL_PATH.exists() and SCALER_PATH.exists():
+    model = joblib.load(MODEL_PATH)
+    scaler = joblib.load(SCALER_PATH)
+else:
+    st.error("Model files not found. Please ensure best_model.joblib and scaler.joblib are in /model folder.")
 
 st.set_page_config(page_title="Student Dropout Risk Predictor", page_icon="🎓")
 
@@ -30,7 +34,10 @@ with st.form("student_form"):
     submit = st.form_submit_button("Predict")
 
 if submit:
-    # --- Construct input dataframe ---
+  if model is None or scaler is None:
+    st.warning("Model is not available, cannot make predictions.")
+  else:
+    # Construct input dataframe
     input_dict = {
         "age": [age],
         "sex": [sex],
