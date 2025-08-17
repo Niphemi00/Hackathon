@@ -4,8 +4,10 @@ import joblib
 from pathlib import Path
 
 # --- Load model and scaler ---
-MODEL_PATH = Path("../model/best_model.joblib")
-SCALER_PATH = Path("../model/scaler.joblib")
+BASE_DIR = Path(__file__).resolve().parent.parent
+MODEL_PATH = BASE_DIR / "model/best_model.joblib"
+SCALER_PATH = BASE_DIR / "model/scaler.joblib"
+
 
 model = joblib.load(MODEL_PATH)
 scaler = joblib.load(SCALER_PATH)
