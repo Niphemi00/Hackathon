@@ -55,13 +55,19 @@ def main(args):
     rf.fit(X_train, y_train)
     evaluate_model(rf, X_test, y_test, "Random Forest")
 
-    # Choose best model (by F1-score or ROC-AUC)
-    # For now, save Random Forest (commonly better)
+    # Choose best model :by F1-score or ROC-AUC (For now, save Random Forest (commonly better))
     Path(args.output).parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(rf, args.output)
     print(f"\n✅ Model saved to {args.output}")
     
+    importances = rf.feature_importances_
+    feature_names = X_train.columns
+    feat_imp = pd.Series(importances, index=feature_names).sort_values(ascending=False)
 
+    print("\n=== Top 10 Features Influencing Dropout Risk ===")
+    print(feat_imp.head(10))
+    #Save file for reference
+    feat_imp.to_csv("model/feature_importance.csv")
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--data", type=str, default="data/processed_students_for_model.csv")
