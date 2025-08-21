@@ -31,7 +31,7 @@ def main(args):
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    # --- Logistic Regression (baseline) ---
+    # --- Logistic Regression (baseline ) ---
     log_reg = LogisticRegression(max_iter=1000)
     log_reg.fit(X_train, y_train)
     y_pred_lr = log_reg.predict(X_test)

@@ -1,57 +1,89 @@
-# Student Dropout Risk Predictor (Hackathon Project August 2025)
+# 🎓 Student Dropout Risk Predictor
 
-## 📌 Overview
-  This project is being developed for the **Digitaley Drive AI/ML Hackathon**.
-  It predicts the likelihood of a student dropping out based on academic,
-  attendance, and socioeconomic factors.
 
-  The aim is to help schools, policymakers, and NGOs identify at-risk students early
-  and take preventive measures.
+## Overview
+  Every year, many students leave school before finishing.  
+  This project predicts **whether a student is at risk of dropping out** based on their grades, study time, absences, and other factors.  
 
-## 📂 Project Structure
-  Hackathon/
-  │── data/ ==>> would contain the Raw and processed data
-  │── notebooks/ ==>> would contain the EDA and model development
-  │── src/ ==>> would contain the Scripts for training and inference
-  │── app/ ==>> would contain the Streamlit web app for uploading data and getting predictions
-  │── model/ ==>> would contain the Saved model artifacts
-  │── requirements.txt ==>> would contain the neccesary Python dependencies
-  │── README.md
+  It was developed for the **Digitaley Drive AI/ML Hackathon (2025)**.  
+  The aim is to give teachers and schools a simple tool to identify at-risk students early.
 
-## 📊 Dataset
-  We are using the **Student Alcohol Consumption Dataset** from Kaggle:
-  https://www.kaggle.com/datasets/uciml/student-alcohol-consumption
-  This dataset contains information about students' alcohol consumption, academic performance, attendance, and socioeconomic factors.
+---
 
-  This dataset comprises of three files:
-  - `student-mat.csv` – Data on students in the mathematics course.
-  - `student-por.csv` – Data on students in the Portuguese language course.
+## 🚀 Live Demo
+ [Try the app here](https://tram-brain-byte-hackathon-2025.streamlit.app/)
 
+---
+
+## Key Features
+- Predicts dropout risk from academic and background data  
+- Provides a **risk probability score** (0.0 → 1.0)  
+- Identifies **important features** influencing risk (grades, absences, failures)  
+- Interactive Streamlit app for real-time predictions  
+
+---
+
+## Workflow
+  We followed a structured process, committing progress step by step:
+
+  1. **Data Setup**  
+    - Collected dataset (*Student Alcohol Consumption, UCI/Kaggle*)  
+    - Organized repo with folders for `data/`, `src/`, `model/`, `app/`
+
+  2. **Preprocessing**  
+    - Cleaned dataset  
+    - Engineered new features:  
+      - `avg_grade` → mean of G1, G2, G3  
+      - `grade_trend` → final grade minus first grade  
+      - `passed_final` → 1 if final grade ≥ 10, else 0  
+    - Encoded categorical features (e.g., `sex` → `sex_M`)  
+
+  3. **Baseline Models**  
+    - Logistic Regression  
+    - Random Forest (default settings)  
+    - Evaluated with accuracy, precision, recall, F1  
+
+  4. **Improved Model**  
+    - Random Forest with GridSearchCV (hyperparameter tuning)  
+    - Cross-validation for robustness  
+    - Evaluated with ROC-AUC and confusion matrix  
+    - Extracted **feature importance**  
+
+  5. **Deployment**  
+    - Saved trained model, scaler, and feature names with `joblib`  
+    - Built Streamlit app for predictions  
+    - Deployed app on Streamlit Cloud  
+
+  6. **Final Polish**  
+    - README with demo link, results, and instructions  
+    - Added docs with ROC Curve & Feature Importance  
+
+## Dataset
+  We are using the **Student Performance Dataset** from [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/student+performance) (also available on Kaggle).
   It includes:
   - Demographics (age, gender, parental education)
-  - Academic info (grades: G1, G2, G3)
+  - Academic info (grades, study time)
   - Attendance (absences)
   - Lifestyle & family info
-  - Alcohol consumption habits
 
-## File download and setup
-  git clone https://github.com/Niphemi00/Hackathon.git
-  cd Hackathon
+  The target variable is **dropout risk**, derived from academic & attendance indicators.
+
+##  Project Structure
+    Hackathon/
+      │── app/ # Streamlit app
+      │ └── app.py
+      │── data/ # Raw & processed data
+      │── model/ # Saved models & scaler
+      │── notebooks/ # EDA and experiments
+      │── src/ # Training & preprocessing scripts
+      │ └── train_tuned.py
+      │── requirements.txt # Dependencies
+      │── README.md # Project documentation
+      │── NOTES.md # Beginner-friendly explanation
+
+
+## 🚀 Installation and training
+  git clone https://github.com/<your-username>/student_dropout_predictor.git
+  cd student_dropout_predictor
   pip install -r requirements.txt
-
-We will engineer a **dropout risk label** using low grades & high absences.
-
-
-## Dataset setup instructions for you
-  # 1. Install Kaggle CLI
-  pip install kaggle
-
-  # 2. Place your Kaggle API token (kaggle.json) in:
-  # Linux/Mac: ~/.kaggle/kaggle.json
-  # Windows: C:\Users\<username>\.kaggle\kaggle.json
-
-  # 3. Download the dataset
-  kaggle datasets download -d uciml/student-alcohol-consumption -p data/
-
-  # 4. Unzip
-  unzip data/student-alcohol-consumption.zip -d data/
+  python src/train_tuned.py

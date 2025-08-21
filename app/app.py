@@ -22,7 +22,7 @@ st.set_page_config(page_title="Student Dropout Risk Predictor", page_icon="🎓"
 st.title("🎓 Student Dropout Risk Predictor")
 st.write("Enter student information to predict dropout risk.")
 
-# --- Input Form ---
+# Input form for student values
 with st.form("student_form"):
     age = st.number_input("Age", min_value=15, max_value=25, value=16)
     sex = st.selectbox("Sex", ["F", "M"])
@@ -56,7 +56,7 @@ if submit:
         input_df["grade_trend"] = input_df["G3"] - input_df["G1"]
         input_df["passed_final"] = (input_df["G3"] >= 10).astype(int)
 
-        # One-hot encoding
+        # OHE
         input_df = pd.get_dummies(input_df, columns=["sex"], drop_first=True)
 
         # Ensure all expected features are present
@@ -64,13 +64,13 @@ if submit:
             if col not in input_df:
                 input_df[col] = 0
 
-        # Reorder columns to match training
+        # Reorganuze columns to match training
         input_df = input_df[feature_names]
 
         # Scale numeric values
         input_scaled = scaler.transform(input_df)
 
-        # Prediction
+        # make valid prediction
         prob = model.predict_proba(input_scaled)[:, 1][0]
         prediction = "At Risk" if prob >= 0.5 else "Not at Risk"
 
