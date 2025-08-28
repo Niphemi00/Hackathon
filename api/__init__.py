@@ -3,6 +3,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 from flasgger import Swagger
+from flask_cors import CORS
 from flask import Flask, g, jsonify, request
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -23,6 +24,7 @@ def create_app():
 
     app = Flask(__name__)
     swagger = Swagger(app)
+    CORS(app)
 
     @app.post("/predict")
     def predict_score():
